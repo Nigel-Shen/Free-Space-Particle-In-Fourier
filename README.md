@@ -33,7 +33,7 @@ pip install numpy scipy matplotlib finufft pandas
 
 ### Usage
 
-Run the `cyclotron_beam_simulation.py` script to perform the simulation with the default settings. You can adjust parameters like time step (DT) and number of particles (N) inside the script.
+Run the `free_space_cyclotron.py` script to perform the simulation with the default settings. You can adjust parameters like time step (DT) and number of particles (N) inside the script.
 
 ```
 python cyclotron_beam_simulation.py
