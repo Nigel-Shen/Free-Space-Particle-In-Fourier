@@ -65,8 +65,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments
 
-- The code is based on scientific research by [Author's Name] (provide citation/reference if applicable).
+- The code is based on scientific research by Nigel Shen, Antoine Cerfon and Sriramkrishnan Muralikrishnan.
 
-```
-
-I've added descriptions for each parameter based on their usage in the code. You can further expand these explanations or modify them as needed to provide more context to users. Let me know if there's anything else you'd like to add or if you have any other suggestions!
