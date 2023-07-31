@@ -50,13 +50,12 @@ LT = 1.5 * L
 green = (1 - sp.jv(0, LT * s)) / (s ** 2) - (LT * np.log(LT) * sp.jv(1, LT * s)) / s
 green[extension * NG // 2, extension * NG // 2] = (LT ** 2 / 4 - LT ** 2 * np.log(LT) / 2)
 
-r = L / NG
 J = np.fft.fftshift(wm) * np.ones([NG * extension, 1])
 Kabsolute = np.transpose(np.sqrt(J ** 2 + np.transpose(J) ** 2))
 Kabsolute[0, 0] = 1
-Shat = (2 * sp.j1(r * Kabsolute) / (r * Kabsolute)) ** 2
+Shat = (2 * sp.j1(r * Kabsolute) / (dx * Kabsolute)) ** 2
 Shat[0, 0] = 1
-Shat = Shat * (L / NG) ** 2 / (r ** 2)
+Shat = Shat * (L / NG) ** 2 / (dx ** 2)
 green1 = Shat * np.fft.fftshift(green)
 green2 = Shat ** 2 * np.fft.fftshift(green)
 
@@ -76,7 +75,7 @@ VP0 = np.random.randn(2, N)
 energies = pd.DataFrame(columns=["DT", "Energy", "Type"])
 
 # Loop over different time steps (DT)
-for DT in [0.002]:  # [0.01, 0.005, 0.002, 0.001, 0.0005, 0.0002, 0.0001]
+for DT in [0.01, 0.005, 0.002, 0.001, 0.0005, 0.0002, 0.0001]:
     # Initialize energy lists for kinetic and potential energy
     Eks = []  # Kinetic Energy
     Eps = []  # Potential Energy
@@ -122,3 +121,17 @@ for DT in [0.002]:  # [0.01, 0.005, 0.002, 0.001, 0.0005, 0.0002, 0.0001]
         Eks.append(Ek)
         rho = np.fft.fftshift(np.real(np.fft.ifft2(rho_Hat)))
         Ep = np.sum(np.fft.fft2(rho) * np.conjugate(phi_Hat) / (2 * L ** 2))
+        Eps.append(Ep)
+        Etotals.append(Ep + Ek)
+
+        if clock % 2500 == 0:
+            fourier_data = pd.DataFrame(np.fft.fftshift(np.abs(rho_Hat)), index=np.arange(-NG // 2, NG // 2, .5),
+                                        columns=np.arange(-NG // 2, NG // 2, .5))
+            rho_abs.append(fourier_data)
+            rhos.append(-rho[int(0.5 * NG):int(1.5 * NG), int(.5 * NG):int(1.5 * NG)] / dx ** 2)
+
+    energies = energies.append({"DT": DT, "Energy": np.max(np.abs(Etotals - Etotals[0])), "Type": "Numerical Error"},
+                                   ignore_index=True)
+    energies = energies.append({"DT": DT, "Energy": DT ** 2, "Type": "2nd Order Reference"}, ignore_index=True)
+
+# Add additional code here for post-processing or plotting if needed.
