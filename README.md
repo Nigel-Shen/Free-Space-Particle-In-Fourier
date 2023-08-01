@@ -22,7 +22,7 @@ The code simulates the behavior of particles in a cyclotron beam, considering th
 1. Clone the repository:
 
 ```
-git clone https://github.com/yourusername/cyclotron-beam-simulation.git
+git clone https://github.com/Nigel-Shen/Free-Space-Particle-In-Fourier.git
 ```
 
 2. Install the required Python packages:
@@ -36,7 +36,7 @@ pip install numpy scipy matplotlib finufft pandas
 Run the `free_space_cyclotron.py` script to perform the simulation with the default settings. You can adjust parameters like time step (DT) and number of particles (N) inside the script.
 
 ```
-python cyclotron_beam_simulation.py
+python free_sapce_cyclotron.py
 ```
 
 ### Parameters
