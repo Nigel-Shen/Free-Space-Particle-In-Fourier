@@ -13,7 +13,7 @@ rhos = [] # Stores /rho in physical space
 L = 1
 NG = 128
 QM = -1
-N = 50000
+N = 40000
 WP = 1  # omega p
 VT = 1  # Thermal Velocity
 lambdaD = VT / WP  # Charge of a particle
@@ -60,10 +60,10 @@ VP0 = np.random.randn(2, N)
 
 f = 0 # Boundary Condition
 NB = NG
-energies = pd.DataFrame(columns=["DT", "Energy", "Number of Boundary Points"]) # Show global convergence
+energies = pd.DataFrame(columns=["DT", "Energy", "Type"]) # Show global convergence
 theta = np.linspace(0, 2 * np.pi, num=NB, endpoint=False)
 XB = np.array([np.cos(theta), np.sin(theta)]) / 2 # Boundary points
-for DT in [0.002]: #[0.015, 0.01, 0.0075, 0.005, 0.002, 0.001, 0.00075, 0.0005]:
+for DT in [0.002]:#[0.015, 0.01, 0.0075, 0.005, 0.002, 0.001, 0.00075, 0.0005]:
     Eks = [] # Kinetic Energy
     Eps = [] # Potential Energy
     Etotals = [] # Total Energy
@@ -94,9 +94,9 @@ for DT in [0.002]: #[0.015, 0.01, 0.0075, 0.005, 0.002, 0.001, 0.00075, 0.0005]:
         BC = f - np.array([np.real(finufft.nufft2d2(XB[0] * np.pi / L+ np.pi, XB[1] * np.pi / L+ np.pi, np.conjugate(psi_Hat), eps=1e-14, modeord=1))])
         UmX = np.array([XB[0]]).T - XP[0]
         VmY = np.array([XB[1]]).T - XP[1]
-        a1 += 2 * np.sum((XP[0] * (UmX ** 2 + VmY ** 2)-UmX*(1-(XP[0]**2+XP[1]**2))) * BC.T / ((UmX**2 + VmY**2)**2 * NB), axis=0) * QM
-        a2 += 2 * np.sum((XP[1] * (UmX ** 2 + VmY ** 2)-VmY*(1-(XP[0]**2+XP[1]**2))) * BC.T / ((UmX**2 + VmY**2)**2 * NB), axis=0) * QM
-        psiH = np.real(np.sum((1 - (XP[0] ** 2 + XP[1] ** 2)) * BC.T / ((UmX ** 2 + VmY ** 2) * NB), axis=0))
+        a1 += 2 * np.sum((XP[0] * (UmX ** 2 + VmY ** 2) - UmX * (1/4 - (XP[0] ** 2 + XP[1] ** 2))) * BC.T / ((UmX ** 2 + VmY ** 2) ** 2 * NB), axis=0) * QM
+        a2 += 2 * np.sum((XP[1] * (UmX ** 2 + VmY ** 2) - VmY * (1/4 - (XP[0] ** 2 + XP[1] ** 2))) * BC.T / ((UmX ** 2 + VmY ** 2) ** 2 * NB), axis=0) * QM
+        psiH = np.real(np.sum((1/4 - (XP[0] ** 2 + XP[1] ** 2)) * BC.T / ((UmX ** 2 + VmY ** 2) * NB), axis=0)) 
         
         if N==1:
             a = np.array([[a1], [a2]])
@@ -123,30 +123,25 @@ for DT in [0.002]: #[0.015, 0.01, 0.0075, 0.005, 0.002, 0.001, 0.00075, 0.0005]:
         Eps.append(Ep)
         Etotals.append(Ep + Ek + np.sum(psiH) * Q / 2)
         
-        if clock%2500==0:
+        if clock%40==0:
             print(clock)
             rho_abs = np.fft.fftshift(np.abs(rho_Hat))
-            rhos.append(-rho[int(0.5*NG):int(1.5*NG), int(.5*NG):int(1.5*NG)] / dx ** 2)
+            #rhos.append(-rho[int(0.5*NG):int(1.5*NG), int(.5*NG):int(1.5*NG)] / dx ** 2)
             #plt.subplot(2,2,clock//2500+1)
             #plt.imshow(rho_abs, cmap='inferno', extent=[-16, 16, -16, 16])
             #plt.title('T =' + str(clock*DT))
             # print(np.mean(np.abs(a1)), np.mean(np.abs(np.cross(VP, B0, axisa=0)[:, 0].T * QM)))
-            # container = ax.imshow(-rho[int(0.5*NG):int(1.5*NG), int(.5*NG):int(1.5*NG)], cmap=colormap)
+            container = ax.imshow(-rho[int(0.5*NG):int(1.5*NG), int(.5*NG):int(1.5*NG)], cmap=colormap)
             # ax.set_title('T='+str(clock*DT))
-            # artist.append([container])
+            artist.append([container])
     #plt.clf()
+    ax.scatter(cylinder.XB[0,:] * cylinder.NG + cylinder.NG//2 , cylinder.XB[1,:] * cylinder.NG + cylinder.NG//2, edgecolor='#DDDDDD', linewidth=0.5, s=10, c=sns.color_palette()[9])
     tick = np.linspace(0, clock*DT, clock//40+1, endpoint=False)
     #plt.plot(tick, (np.array(Etotals) - Etotals[0]) / Etotals[0], linewidth='2', label=r"$DT = $" + str(DT))
     #if DT < 0.001:
     #plt.plot(tick, (np.array(Etotals) - Etotals[0]) / Etotals[0] * (0.001 / DT) ** 2, ls='--', linewidth='1.5', label= str((0.001 / DT) ** 2) + r"$\times DT = $" + str(DT))
     dE.append(np.max(np.abs(np.array(Etotals) - Etotals[0])))
-    energies = energies.append({"DT": DT, "Energy": np.max(np.abs((Etotals-Etotals[0])/Etotals[0])), "Number of Boundary Points": int(NB)}, ignore_index=True)
-    energies = energies.append({"DT": DT, "Energy": DT ** 2, "Number of Boundary Points": "2nd Order Reference"}, ignore_index=True)
-# ani = animation.ArtistAnimation(fig=fig, artists=artist, interval=40)
-# ani.save(filename="pif_cylinder_128.gif", writer="Pillow")
-# sns.set()
-# plt.rcParams["font.family"] = "Times"
-# plt.plot(DT * np.arange(100), Etotals[0:100], linewidth=2)
-# plt.ylabel('Energy')
-# plt.xlabel('t')
-# plt.show()
+    energies = energies.append({"DT": DT, "Energy": np.max(np.abs((Etotals-Etotals[0])/Etotals[0])), "Type": "Numerical Error"}, ignore_index=True)
+    energies = energies.append({"DT": DT, "Energy": DT ** 2, "Type": "2nd Order Reference"}, ignore_index=True)
+ani = animation.ArtistAnimation(fig=fig, artists=artist, interval=40)
+ani.save(filename="pif_cylinder_128.gif", writer="Pillow")
